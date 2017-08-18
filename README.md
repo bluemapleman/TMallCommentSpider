@@ -1,6 +1,8 @@
 # 天猫商品评论爬虫
 原本是用于情感分析类的科研项目的需求所写的程序，做了一定修改后，希望可以作为给其它有需要的小伙伴们一个小工具。
 
+Lib:[Jsoup](https://jsoup.org/)
+
 [TOC]
 
 # 使用说明
@@ -32,6 +34,7 @@
 
 ## 配置数据库
 项目根目录下的res目录下，有database.properties数据库连接配置文件，分别填写好数据库连接地址，数据库名，连接登录用户名与密码。
+
 ![picture](https://github.com/bluemapleman/TMallCommentSpider/blob/master/数据库配置截图.png)
 ## 执行抓取程序
 
