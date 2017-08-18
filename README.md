@@ -4,7 +4,7 @@
 [TOC]
 
 # 使用说明
-**输入对应天猫商城商品页面的URL，即可获抓取该商品的指定数量的评论**，目前只有直接插入MYSQL数据库的方式。
+**输入对应天猫商城商品页面的URL，即可获抓取该商品的评论**，目前只有直接插入MYSQL数据库的方式。
 
 ## MYSQL 配置
 ### 建表
@@ -30,9 +30,9 @@
 将想要抓取商品的url复制粘贴到项目根目录下的URLs.txt文件中，若要抓取多个商品，则每行粘贴一个商品url。
 ![picture](https://github.com/bluemapleman/TMallCommentSpider/blob/master/url文件截图.png)
 
-## 配置抓取程序
+## 配置数据库
 项目根目录下的res目录下，有database.properties数据库连接配置文件，分别填写好数据库连接地址，数据库名，连接登录用户名与密码。
-
+![picture](https://github.com/bluemapleman/TMallCommentSpider/blob/master/数据库配置截图.png)
 ## 执行抓取程序
 
 主函数在InformationSpider.class中。
