@@ -1,6 +1,8 @@
 # 天猫商品评论爬虫
 原本是用于情感分析类的科研项目的需求所写的程序，做了一定修改后，希望可以作为给其它有需要的小伙伴们一个小工具。
 
+[TomQianMaple@outlook.com](TomQianMaple@outlook.com)
+
 [TOC]
 
 # 使用说明

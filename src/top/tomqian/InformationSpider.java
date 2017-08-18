@@ -1,5 +1,8 @@
-package mainClass;
+package top.tomqian;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -7,6 +10,10 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
@@ -19,56 +26,106 @@ import org.jsoup.nodes.Document;
 public class InformationSpider
 {
 	public static void main(String[] args){
-		List<String> idList=DB.getItemIDList(0,100000000);
-//		String mode="picture";
-		String mode="comment";
-		iterateCatch(idList,mode);
+		DB.initialize("database");
+		List<String> urlList=new ArrayList<String>();
+		urlList.add("https://detail.tmall.com/item.htm?spm=a1z10.3-b-s.w4011-14632554911.96.46f16db0Jq8FlD&id=540685003670&rn=da32d0b472ad288d39cd74549031d4c0&abbucket=20&skuId=3437815164233");
+		List<String> idList=extractId(urlList);
+		boolean toExcelFlag=true;
+		iterateCatch(idList,toExcelFlag);
 	}
 	
+	public static List<String> extractId(List<String> urlList){
+		List<String> idlist=new ArrayList<String>();
+		String reg="&id=\\d*&";
+		Pattern pattern=Pattern.compile(reg);
+		for(String url:urlList){
+			Matcher mathcer=pattern.matcher(url);
+			if(mathcer.find()){
+				String idString=mathcer.group();
+				String id=idString.substring(4,idString.length()-1);
+				idlist.add(id);
+			}
+		}
+		return idlist;
+	}
 	
-	public static void iterateCatch(List<String> idList,String mode){
+	public static void iterateCatch(List<String> idList,boolean toExcelFlag){
 		int count=0;
 		int catchSize=idList.size();
 		for(String id:idList){
-			int totalCommentNum=DB.getGoodCommentCount(id);
-			totalCommentNum=totalCommentNum>2000?2000:totalCommentNum;
 			System.out.println("此处抓取的是第"+(++count)+"个商品"+id+"还剩"+(catchSize-count)+"个商品待抓取");
-			System.out.println("此处抓取的是:"+id+"它的评论数有：>"+totalCommentNum);
+//			System.out.println("此处抓取的是:"+id+"它的评论数有：>"+totalCommentNum);
 			String HTMLURL="https://rate.tmall.com/list_detail_rate.htm?itemId="+id+"&spuId=424778200&sellerId=619123122&order=3&currentPage=1";
 			String tagHtml="https://rate.tmall.com/listTagClouds.htm?itemId="+id+"&isAll=true";
-			if(mode.equals("comment")){
-				System.out.println("有标签评论抓取开始！");
-				Map commentTagMap=new InformationSpider().getTagComment(HTMLURL,tagHtml,id,mode);
-				DB.insertComments(commentTagMap);
-				System.out.println("有标签评论抓取+入库结束!");
-				System.out.println("无标签评论抓取开始!");
-				Map commentNoTagMap=new InformationSpider().getNoTagComment(HTMLURL,mode);
-				DB.insertComments(commentNoTagMap);
-				System.out.println("无标签评论抓取+入库结束!");
-			}
-			else if(mode.equals("picture")){
-				System.out.println("有标签评论picture抓取开始！");
-				Map commentTagMap=new InformationSpider().getTagComment(HTMLURL,tagHtml,id,mode);
-				DB.insertPictures(commentTagMap);
-				System.out.println("有标签评论picture抓取+入库结束!");
-				System.out.println("无标签评论picture抓取开始!");
-				Map commentNoTagMap=new InformationSpider().getNoTagComment(HTMLURL,mode);
-				DB.insertPictures(commentNoTagMap);
-				System.out.println("无标签评论picture抓取+入库结束!");
-			}
-			else{
-				;
-			}
-			System.out.println("已抓取:"+(++count)+"个商品评论，还剩："+(catchSize-count));
-			if((catchSize-count)<0)
-				break;
+			
+			System.out.println("有标签评论抓取开始！");
+			Map commentTagMap=new InformationSpider().getTagComment(HTMLURL,tagHtml,id);
+			DB.insertComments(commentTagMap);
+			System.out.println("有标签评论抓取+入库结束!");
+			
+			
+			System.out.println("无标签评论抓取开始!");
+			Map commentNoTagMap=new InformationSpider().getNoTagComment(HTMLURL);
+			DB.insertComments(commentNoTagMap);
+			System.out.println("无标签评论抓取+入库结束!");
+			
+			System.out.println("已抓取第"+count+"个商品评论");
+			
+			
+//			if(toExcelFlag)
+//				toExcel(commentNoTagMap);
 		}
-		
-		
-		
+		System.out.println("抓取全部完毕！");
 	}
 	
-	public Map getNoTagComment(String commentURL, String mode){
+	/**
+	 * 将数据输出到Excel中，默认当前目录下
+	 */
+//	private static void toExcel(Map commentMap)
+//	{
+//		System.out.println(commentMap);
+//		try
+//		{
+//			// 07之后版本 Workbook wb = new XSSFWorkbook();
+//			Workbook wb = new XSSFWorkbook(); 
+//			FileOutputStream fileOut;
+//			fileOut = new FileOutputStream("workbook.xlsx");
+//			
+//			// wb 可以是上述创建的两个对象之一 
+//			Sheet sheet = wb.createSheet("Tmall-Comments");
+//			
+//			// 1. 首先创建行，声明行的索引，从0开始。
+//			Row row = sheet.createRow(0);
+//			
+//			for(int i=0)
+//			sheet.setColumnWidth(0, 18 * 256); 
+//			sheet.setColumnWidth(1, 18 * 256); 
+//			Row r = sheet.createRow(0); 
+//			r.createCell(0).setCellValue("ip"); 
+//			r.createCell(1).setCellValue("community"); 
+//			r.createCell(2).setCellValue("result");
+//			out = new FileOutputStream(filePath); 
+//			wb.write(out);
+//			
+//			
+//			
+//		}
+//		catch (FileNotFoundException e)
+//		{
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		catch (IOException e)
+//		{
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} 
+//		
+//		
+//		
+//	}
+
+	public Map getNoTagComment(String commentURL){
 			String url=commentURL;
 			Map<Integer,Map> commentMap=new HashMap<Integer,Map>();
 			int pageNum=0;
@@ -92,13 +149,7 @@ public class InformationSpider
 			for(int pageIndex=1;pageIndex<=pageNum+1;pageIndex++){
 				String pageUrl=getIndexedPage(url,pageIndex);
 				//第三个参数置null表示是抓取无标签的评论
-				if(mode.equals("comment"))
-					insertComments(commentMap, pageUrl, null);
-				else if(mode.equals("picture"))
-					insertPicturesInComments(commentMap, pageUrl, null);
-				else{
-					;
-				}
+				insertComments(commentMap, pageUrl, null);
 			}
 			return commentMap;
 	}
@@ -112,7 +163,7 @@ public class InformationSpider
 	 * @param num
 	 */
 	
-	public Map getTagComment(String commentURL,String tagURL,String itemId, String mode){
+	public Map getTagComment(String commentURL,String tagURL,String itemId){
 		//},{"count":832,"id":"520","posi":true,"tag":"便宜","weight":0},{"
 		//先获取所有的tag，再根据tag，去分别获得每个tag对应的标签
 		Document doc=null;
@@ -149,13 +200,7 @@ public class InformationSpider
 				System.out.println("PageNum:"+pageNum);
 				for(int pageIndex=1;pageIndex<=pageNum;pageIndex++){
 					String url=getIndexedPage(commentHtml, pageIndex);
-					if(mode.equals("comment"))
-						insertComments(commentMap, url,tagId);
-					else if(mode.equals("picture"))
-						insertPicturesInComments(commentMap, url, tagId);
-					else{
-						;
-					}
+					insertComments(commentMap, url,tagId);
 				}
 			}
 		}

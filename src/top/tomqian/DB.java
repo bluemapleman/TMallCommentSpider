@@ -1,4 +1,7 @@
-package mainClass;
+package top.tomqian;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -7,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import com.mysql.jdbc.Connection;
@@ -21,12 +25,15 @@ import com.mysql.jdbc.Connection;
 public class DB
 {
 	private static Connection conn=null;
-	public static Connection getConnection(){
+	private static String DBConfigFileName=null;
+	public static Connection getConnection(String configFileName){
 		if(conn==null){
-			String url="jdbc:mysql://localhost/TMallExpe?"+
-		               "user=root&password=123456&useUnicode=true&characterEncoding=UTF8&useSSL=true";
 			try
 			{
+				Properties prop=new Properties();
+				prop.load(new FileInputStream(System.getProperty("user.dir") + "/res/" + configFileName + ".properties"));
+				String url=prop.getProperty("url")+"user="+prop.getProperty("user")+
+						"&password="+prop.getProperty("password")+prop.getProperty("coding");
 				Class.forName("com.mysql.jdbc.Driver");
 				conn=(Connection) DriverManager.getConnection(url);
 			}
@@ -38,6 +45,20 @@ public class DB
 			{
 				e.printStackTrace();
 			}
+			catch (FileNotFoundException e)
+			{
+				e.printStackTrace();
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
+		}
+		return conn;
+	}
+	public static Connection getConnection(){
+		if(conn==null){
+			return getConnection(DB.DBConfigFileName);
 		}
 		return conn;
 	}
@@ -59,7 +80,6 @@ public class DB
 				list.add(map.get("appendContent"));
 				list.add(map.get("appendDate"));
 				list.add(map.get("gid"));
-				list.add(map.get("picture"));
 				String insertAddition=ensembleInsertObject(list,insertContents);
 				if(insertAddition.equals("()"))
 					continue;
@@ -74,14 +94,7 @@ public class DB
 			if(!sql.equals("insert ignore into comments values"))
 				num=stmt.executeUpdate(sql);
 			System.out.println("共插入"+num+"条数据！");
-			System.out.println();
-			
-			
 		}
-//		catch (ClassNotFoundException e)
-//		{
-//			e.printStackTrace();
-//		}// 动态加载mysql驱动  
 		catch (SQLException e)
 		{
 			// TODO Auto-generated catch block
@@ -91,7 +104,7 @@ public class DB
 		return idSet.size();
 	}
 	
-	public static Map getCommentsBetween(){
+	public static void getCommentsBetween(){
 		String sql="select count(*) from comments where ctime>='2016-12-01' and ctime<='2016-12-31'";
 		Statement stmt;
 		try
@@ -104,7 +117,7 @@ public class DB
 		{
 			e.printStackTrace();
 		}
-		return null;
+		return;
 	}
 	
 
@@ -201,5 +214,12 @@ public class DB
 		  
 		return idSet.size();
 		
+	}
+	/**
+	 * 
+	 */
+	public static void initialize(String DBConfigFileName)
+	{
+		DB.DBConfigFileName=DBConfigFileName;
 	}
 }
