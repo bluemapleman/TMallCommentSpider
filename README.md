@@ -21,14 +21,14 @@
     )
 
 
-![picture](https://github.com/bluemapleman/TMallCommentSpider/数据表截图.png)
+![picture](https://github.com/bluemapleman/TMallCommentSpider/blob/master/数据表截图.png)
 
 评论的可获取属性包括：content（评论文本内容），data（评论发表日期），appendContent（追加评论），appendDate(追加评论日期），gid(评论所属商品id）
 
 ## 添加商品页面URL
-![picture](https://github.com/bluemapleman/TMallCommentSpider/网页url截图.png)
+![picture](https://github.com/bluemapleman/TMallCommentSpider/blob/master/网页url截图.png)
 将想要抓取商品的url复制粘贴到项目根目录下的URLs.txt文件中，若要抓取多个商品，则每行粘贴一个商品url。
-![picture](https://github.com/bluemapleman/TMallCommentSpider/url文件截图.png)
+![picture](https://github.com/bluemapleman/TMallCommentSpider/blob/master/url文件截图.png)
 
 ## 配置抓取程序
 项目根目录下的res目录下，有database.properties数据库连接配置文件，分别填写好数据库连接地址，数据库名，连接登录用户名与密码。
