@@ -1,7 +1,4 @@
 package top.tomqian;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,7 +7,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 import com.mysql.jdbc.Connection;
@@ -30,9 +26,8 @@ public class DB
 		if(conn==null){
 			try
 			{
-				Properties prop=new Properties();
-				prop.load(new FileInputStream(System.getProperty("user.dir") + "/res/" + configFileName + ".properties"));
-				String url=prop.getProperty("url")+"user="+prop.getProperty("user")+
+				PropertyKit prop=new PropertyKit(configFileName);
+				String url=prop.getProperty("url")+prop.getProperty("database")+"?user="+prop.getProperty("user")+
 						"&password="+prop.getProperty("password")+prop.getProperty("coding");
 				Class.forName("com.mysql.jdbc.Driver");
 				conn=(Connection) DriverManager.getConnection(url);
@@ -42,14 +37,6 @@ public class DB
 				e.printStackTrace();
 			}
 			catch (SQLException e)
-			{
-				e.printStackTrace();
-			}
-			catch (FileNotFoundException e)
-			{
-				e.printStackTrace();
-			}
-			catch (IOException e)
 			{
 				e.printStackTrace();
 			}
@@ -74,12 +61,15 @@ public class DB
 				ArrayList<String> list=new ArrayList<String>();
 				Map<String,String> map=commentMap.get(key);
 				list.add(map.get("id"));
+				if(map.get("content").equals("此用户没有填写评论!")){
+					continue;
+				}
 				list.add(map.get("content"));
 				list.add(map.get("date"));
-				list.add(map.get("tagId"));
+//				list.add(map.get("tagId"));
 				list.add(map.get("appendContent"));
 				list.add(map.get("appendDate"));
-				list.add(map.get("gid"));
+				list.add(map.get("gid"));			
 				String insertAddition=ensembleInsertObject(list,insertContents);
 				if(insertAddition.equals("()"))
 					continue;
@@ -89,15 +79,14 @@ public class DB
 			for(Integer key:commentMap.keySet()){
 				idSet.add(commentMap.get(key).get("id"));
 			}
-			System.out.println("map中包含："+commentMap.size()+"条数据,id不重复的数据有："+idSet.size());
-			int num=0;
+//			System.out.println("map中包含："+commentMap.size()+"条数据,id不重复的数据有："+idSet.size());
+//			int num=0;
 			if(!sql.equals("insert ignore into comments values"))
-				num=stmt.executeUpdate(sql);
-			System.out.println("共插入"+num+"条数据！");
+				stmt.executeUpdate(sql);
+//			System.out.println("此商品共插入"+num+"条数据！");
 		}
 		catch (SQLException e)
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		  
@@ -208,7 +197,6 @@ public class DB
 		}
 		catch (SQLException e)
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		  
