@@ -2,6 +2,7 @@ package top.tomqian;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -12,6 +13,10 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
@@ -94,6 +99,7 @@ public class InformationSpider
 	}
 	
 	public static void iterateCatch(List<String> idList,boolean toDatabase,boolean toExcel,int iterationTimes){
+		ArrayList<Map<String,String>> totalList=new ArrayList<Map<String,String>>();
 		for(int i=1;i<iterationTimes+1;i++){
 			int count=0;
 			int commentsQuan=0;
@@ -107,84 +113,80 @@ public class InformationSpider
 				
 //				System.out.println("有标签评论抓取开始！");
 				Map<Integer,Map<String,String>> commentTagMap=new InformationSpider().getTagComment(HTMLURL,tagHtml,id);
+				commentsQuan+=commentTagMap.size();
 				if(toDatabase==true)
-					commentsQuan+=DB.insertComments(commentTagMap);
+					DB.insertComments(commentTagMap);
 //				System.out.println("有标签评论抓取+入库结束!");
+				totalList.addAll(0, commentTagMap.values());
 				
 				
 //				System.out.println("无标签评论抓取开始!");
 				Map<Integer,Map<String,String>> commentNoTagMap=new InformationSpider().getNoTagComment(HTMLURL);
+				commentsQuan+=commentNoTagMap.size();
 				if(toDatabase==true)
-					commentsQuan+=DB.insertComments(commentNoTagMap);
+					DB.insertComments(commentNoTagMap);
 //				System.out.println("无标签评论抓取+入库结束!");
+				totalList.addAll(0, commentNoTagMap.values());
 				
 				System.out.println("已抓取第"+count+"个商品评论\n");
-				
-				
-//				if(toExcel)
-//					toExcel(commentNoTagMap);
 				
 			}
 			System.out.println("第"+i+"轮抓取完毕，共获得"+commentsQuan+"条评论数据！");
 		}
+		if(toExcel)
+			toExcel(totalList);
 		System.out.println("所有抓取结束！");
 	}
 	
 	/**
 	 * 将数据输出到Excel中，默认当前目录下
 	 */
-//	private static void toExcel(Map<Integer,Map<String,String>> commentMap)
-//	{
-//		System.out.println(commentMap);
-//		try
-//		{
-//			// 07之后版本 Workbook wb = new XSSFWorkbook();
-//			Workbook wb = new XSSFWorkbook(); 
-//			FileOutputStream fileOut;
-//			fileOut = new FileOutputStream("workbook.xlsx");
-//			
-//			// wb 可以是上述创建的两个对象之一 
-//			Sheet sheet = wb.createSheet("Tmall-Comments");
-//			
-//			// 1. 首先创建行，声明行的索引，从0开始。
-//			Row row = sheet.createRow(0);
-//			
-//			Row r = sheet.createRow(0); 
-//			r.createCell(0).setCellValue("id"); 
-//			r.createCell(1).setCellValue("content"); 
-//			r.createCell(2).setCellValue("date");
-//			r.createCell(3).setCellValue("appendComment");
-//			r.createCell(4).setCellValue("appendDate");
-//			r.createCell(5).setCellValue("gid");
-//			
-//			Set<Integer> keys=commentMap.keySet();
-//			int count=1;
-//			for(Integer key:keys){
-//				Row newRow = sheet.createRow(count++);
-//				Map<String,String> map=commentMap.get(key);
-//				newRow.createCell(0).setCellValue(map.get("content"));
-//				newRow.createCell(1).setCellValue(map.get("date"));
-//				newRow.createCell(2).setCellValue(map.get("appendContent"));
-//				newRow.createCell(3).setCellValue(map.get("appendDate"));
-//				newRow.createCell(4).setCellValue(map.get("gid"));
-//			}
-//
-//			wb.write(fileOut);
-//			
-//			
-//			
-//		}
-//		catch (FileNotFoundException e)
-//		{
-//			e.printStackTrace();
-//		}
-//		catch (IOException e)
-//		{
-//			e.printStackTrace();
-//		} 
-//		
-//		
-//	}
+	private static void toExcel(ArrayList<Map<String,String>> totalList)
+	{
+		try
+		{
+			// 07之后版本 Workbook wb = new XSSFWorkbook();
+			@SuppressWarnings("resource")
+			Workbook wb = new HSSFWorkbook(); 
+			FileOutputStream fileOut;
+			fileOut = new FileOutputStream("Tmall-Comments.xls");
+			
+			// wb 可以是上述创建的两个对象之一 
+			Sheet sheet = wb.createSheet("Tmall-Comments");
+			
+			// 1. 首先创建行，声明行的索引，从0开始。
+			Row r = sheet.createRow(0); 
+			r.createCell(0).setCellValue("id"); 
+			r.createCell(1).setCellValue("content"); 
+			r.createCell(2).setCellValue("date");
+			r.createCell(3).setCellValue("appendComment");
+			r.createCell(4).setCellValue("appendDate");
+			r.createCell(5).setCellValue("gid");
+			
+			int count=1;
+			for(Map<String,String> map:totalList){
+				Row newRow = sheet.createRow(count++);
+				newRow.createCell(0).setCellValue(map.get("id"));
+				newRow.createCell(1).setCellValue(map.get("content"));
+				newRow.createCell(2).setCellValue(map.get("date"));
+				newRow.createCell(3).setCellValue(map.get("appendContent"));
+				newRow.createCell(4).setCellValue(map.get("appendDate"));
+				newRow.createCell(5).setCellValue(map.get("gid"));
+			}
+			wb.write(fileOut);
+		}
+		catch (FileNotFoundException e)
+		{
+			e.printStackTrace();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		} 
+		System.out.println("Excel文件生成完毕！文件在:"+System.getProperty("user.dir")+File.separator+"Tmall-Comments.xls");
+		
+		
+	}
 
 	public Map<Integer,Map<String,String>> getNoTagComment(String commentURL){
 			String url=commentURL;
@@ -217,7 +219,7 @@ public class InformationSpider
     
 	
 	/**
-	 * 给定初始商品的评论页面，抓取大概在给定数量左右的评论，但不能超过2000（TMall提供的评论数上限）
+	 * 给定初始商品的评论页面，抓取大概在给定数量左右的无标签评论，但不能超过2000（TMall提供的评论数上限）
 	 * @param mode 
 	 * @param HTMLURL:形如"https://rate.tmall.com/list_detail_rate.htm?itemId=10670699278&spuId=268191144&sellerId=619123122&order=3&currentPage=1"
 	 * @param num
@@ -419,6 +421,7 @@ public class InformationSpider
 		Pattern pattern = Pattern.compile(regex);
 		return pattern.matcher(html);
 	}
+	
 	
 }
 
