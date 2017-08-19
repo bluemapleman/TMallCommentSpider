@@ -88,6 +88,9 @@ Lib:[Jsoup](https://jsoup.org/)
 
 ![picture](https://github.com/bluemapleman/TMallCommentSpider/blob/master/snapshot/运行截图.png)
 
+输出excel结果
+
+![picture](https://github.com/bluemapleman/TMallCommentSpider/blob/master/snapshot/示例excel截图.png)
 
 # 额外说明
 - 由于许多评论是空内容评论（买家购买后长期未给出商品评论，系统默认为空评论），同时由于天猫后台的数据传输机制，导致每个商品有一部分的商品评论不能获取到。
